@@ -1,0 +1,28 @@
+@import url('https://fonts.googleapis.com/css?family=Roboto:300,400,500');
+
+:root {
+  --fixed: #D3D3D3; 
+  --selected: #2d7ff9;
+  --border: #525A66;
+  --primary-fill: #70cbce;
+}
+
+.axis path {
+	stroke: var(--border);
+}
+
+.axis line {
+	fill: none;
+	stroke: var(--border);
+}
+
+.axis text {
+	color: var(--border);
+	font-family: 'Roboto';
+}
+
+.point {
+	fill: var(--primary-fill);
+	stroke: #fff;
+	stroke-width: 0.5;
+}
