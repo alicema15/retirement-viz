@@ -26,3 +26,11 @@
 	stroke: #fff;
 	stroke-width: 0.5;
 }
+
+.point.faded {
+	opacity: 0.3;
+}
+
+.line.faded {
+	opacity: 0.3;
+}
