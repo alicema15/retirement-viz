@@ -4,16 +4,17 @@
   --fixed: #D3D3D3; 
   --selected: #2d7ff9;
   --border: #525A66;
+  --border-light: #989FA9;
   --primary-fill: #70cbce;
 }
 
 .axis path {
-	stroke: var(--border);
+	stroke: var(--border-light);
 }
 
 .axis line {
 	fill: none;
-	stroke: var(--border);
+	stroke: var(--border-light);
 }
 
 .axis text {
@@ -33,4 +34,9 @@
 
 .line.faded {
 	opacity: 0.3;
+}
+
+.hover-line {
+	stroke: var(--border-light);
+	stroke-dasharray: 3,3;
 }
