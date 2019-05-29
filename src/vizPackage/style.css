@@ -20,6 +20,7 @@
 .axis text {
 	color: var(--border);
 	font-family: 'Roboto';
+	font-size: 10px;
 }
 
 .point {

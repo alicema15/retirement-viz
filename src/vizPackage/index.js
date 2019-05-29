@@ -4,11 +4,11 @@ import * as aesthetics from './constants/aesthetics';
 import * as d3_utils from './helpers/d3_utils';
 import './style.css';
 
-// import disney_data from './data/disney_payload.json';
-import test_data from './data/test.json';
+import disney_data from './data/process_disney';
+const data = disney_data;
 
-// const data = disney_data.people_attributes;
-const data = test_data
+// import test_data from './data/test.json';
+// const data = test_data
 
 class VizPackage {
 	constructor() {
@@ -21,24 +21,34 @@ class VizPackage {
 		const self = this; 
 
 		this.points = data;
+		this.xDomain = [data.reduce((min, p) => p.age < min ? p.age : min, data[0].age), data.reduce((max, p) => p.age > max ? p.age : max, data[0].age)];
+		this.yDomain = [data.reduce((min, p) => p.tenure < min ? p.tenure : min, data[0].tenure), data.reduce((max, p) => p.tenure > max ? p.tenure : max, data[0].tenure)];
 
 		this.svg = d3.select(vizRef).append('svg')
 			.attr('class', 'svg-container')
 			.attr('width', this.width)
-			.attr('height', this.height)
-			.on('mouseenter', (d) => { this.focus.style('display', null); })
-			.on('mousemove', function(d) { self.svgMousemove(this); })
-			.on('mouseleave', (d) => { this.focus.style('display', 'none'); });;
+			.attr('height', this.height);
 
 		this.container = this.svg.append('g')
+			.attr('class', 'chart-container')
 			.attr('transform', 'translate(' + aesthetics.MARGIN_LEFT + ',' + aesthetics.MARGIN_TOP + ')');
 
+		this.container
+			.append('rect')
+			.attr('class', 'chart-background')
+			.attr('width', aesthetics.CHART_WIDTH)
+			.attr('height', aesthetics.CHART_HEIGHT)
+			.attr('fill-opacity', 0)
+			.on('mouseenter', (d) => { this.focus.style('display', null); })
+			.on('mousemove', function(d) { self.svgMousemove(this); })
+			.on('mouseleave', (d) => { this.focus.style('display', 'none'); });
+
 		this.xScale = d3.scaleLinear()
-			.domain([0, 50])
+			.domain(this.xDomain)
 			.range([0, aesthetics.CHART_WIDTH]);
 
 		this.yScale = d3.scaleLinear()
-			.domain([0, 50])
+			.domain(this.yDomain)
 			.range([aesthetics.CHART_HEIGHT, 0]);
 
 		this.generateLine = d3.line()
@@ -90,15 +100,16 @@ class VizPackage {
 			.attr('class', 'point')
 			.attr('r', aesthetics.POINT_RADIUS)
 			.attr('cx', (d) => { return this.xScale(d.age); })
-			.attr('cy', (d) => { return this.yScale(d.tenure); })
-			.on('mouseenter', function(d) { self.pointMouseenter(d, this); })
-			.on('mouseleave', function(d) { self.pointMouseleave(d, this); });
+			.attr('cy', (d) => { return this.yScale(d.tenure); });
+			// .on('mouseenter', function(d) { self.pointMouseenter(d, this); })
+			// .on('mouseleave', function(d) { self.pointMouseleave(d, this); });
 	
 		this.point.exit().remove();
 		this.point = this.pointEnter.merge(this.point);
 	}
 
 	svgMousemove = (self) => {
+		console.log([d3.mouse(self)[0], d3.mouse(self)[1]]);
 		const x0 = this.xScale.invert(d3.mouse(self)[0]),
 					y2 = this.yScale.invert(d3.mouse(self)[1]),
 					i = d3_utils.bisectAge(this.points, x0, 1);
