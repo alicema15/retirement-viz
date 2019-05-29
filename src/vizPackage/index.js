@@ -108,6 +108,7 @@ class VizPackage {
 		this.point = this.pointEnter.merge(this.point);
 	}
 
+
 	svgMousemove = (self) => {
 		console.log([d3.mouse(self)[0], d3.mouse(self)[1]]);
 		const x0 = this.xScale.invert(d3.mouse(self)[0]),
