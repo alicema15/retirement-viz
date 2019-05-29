@@ -56,6 +56,11 @@ class VizPackage {
 			.y((d) => { return this.yScale(d.tenure); })
 			.curve(d3.curveMonotoneX);
 
+		this.generateArea = d3.area()
+			.x((d) => { return this.xScale(d.age); })
+			.y0(aesthetics.CHART_HEIGHT)
+			.y1((d) => { return this.yScale(d.tenure); });
+
 		this.xAxis = this.container.append('g')
 			.attr('class', 'x axis')
 			.attr('transform', 'translate(0,' + aesthetics.CHART_HEIGHT + ')')
@@ -65,12 +70,21 @@ class VizPackage {
 			.attr('class', 'y axis')
 			.call(d3.axisLeft(this.yScale));
 
-		this.line = this.container.append('path');
+		this.area = this.container.append('path')
+			.attr('class', 'line-area')
+			.attr('pointer-events', 'none');
 
-		this.point = this.container.append('g').selectAll('.point');
+		this.line = this.container.append('path')
+			.attr('pointer-events', 'none');
+
+		this.point = this.container.append('g')
+			// .attr('pointer-events', 'none')
+			.selectAll('.point');
+
 		this.focus = this.container.append('g')
 			.attr('class', 'focus')
-			.style('display', 'none');
+			.style('display', 'none')
+			.attr('pointer-events', 'none');
 
 		this.focus.append('line')
 			.attr('class', 'hover-line y-hover-line')
@@ -86,6 +100,13 @@ class VizPackage {
 	update = () => {
 		const self = this;
 
+		this.area = this.container.select('.line-area')
+       .data([this.points])
+       .attr('class', 'area')
+       .attr('fill', aesthetics.TURQUOISE)
+       .attr('fill-opacity', 0.2)
+       .attr('d', this.generateArea);
+
 		this.line = this.line.data([this.points])
 			.attr('class', 'line')
 			.attr('fill', 'none')
@@ -100,14 +121,13 @@ class VizPackage {
 			.attr('class', 'point')
 			.attr('r', aesthetics.POINT_RADIUS)
 			.attr('cx', (d) => { return this.xScale(d.age); })
-			.attr('cy', (d) => { return this.yScale(d.tenure); });
-			// .on('mouseenter', function(d) { self.pointMouseenter(d, this); })
-			// .on('mouseleave', function(d) { self.pointMouseleave(d, this); });
+			.attr('cy', (d) => { return this.yScale(d.tenure); })
+			.on('mouseenter', function(d) { self.pointMouseenter(d, this); })
+			.on('mouseleave', function(d) { self.pointMouseleave(d, this); });
 	
 		this.point.exit().remove();
 		this.point = this.pointEnter.merge(this.point);
 	}
-
 
 	svgMousemove = (self) => {
 		console.log([d3.mouse(self)[0], d3.mouse(self)[1]]);
@@ -147,11 +167,16 @@ class VizPackage {
 	}
 
 	fadeNodes = (d) => {
-		this.point.classed('faded', (n) => { return n.id !== d.id; });
+		this.point.classed('faded', (n) => { return n !== d; });
 	}
 
 	fadeLinks = (d) => {
   	this.line.classed('faded', (l) => { return true; });
+	}
+
+	removeFade = () => {
+		this.point.classed('faded', false);
+		this.line.classed('faded', false);
 	}
 
 }
