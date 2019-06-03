@@ -1,12 +1,14 @@
 import * as d3 from 'd3';
 
 import * as aesthetics from './constants/aesthetics';
-import * as d3_utils from './helpers/d3_utils';
+import * as utils from './helpers/utils';
 import './style.css';
 
 import disney_data from './data/process_disney';
 const data = disney_data;
 
+const data_1 = [data[0]];
+const data_2 = data;
 // import test_data from './data/test.json';
 // const data = test_data
 
@@ -23,18 +25,12 @@ class VizPackage {
 	initializeCanvas = (vizRef) => {
 		const self = this; 
 
-		this.data_original = data;
+		this.data_original = data_1;
 		this.data = this.data_original;
-		this.first_line = this.data.map((d) => { return d.data }).flat();
+		this.all_datum = this.data.map((d) => { return d.data }).flat();
 		
-		this.xDomain = [
-			this.first_line.reduce((min, p) => p[X_AXIS] < min ? p[X_AXIS] : min, this.first_line[0][X_AXIS]), 
-			this.first_line.reduce((max, p) => p[X_AXIS] > max ? p[X_AXIS] : max, this.first_line[0][X_AXIS])
-		];
-		this.yDomain = [
-			this.first_line.reduce((min, p) => p[Y_AXIS] < min ? p[Y_AXIS] : min, 
-			this.first_line[0][Y_AXIS]), this.first_line.reduce((max, p) => p[Y_AXIS] > max ? p[Y_AXIS] : max, this.first_line[0][Y_AXIS])
-		];
+		this.xDomain = utils.get_axis_min_max(this.all_datum, X_AXIS);
+		this.yDomain = utils.get_axis_min_max(this.all_datum, Y_AXIS);
 
 		d3.select('body')
       .on('keydown', this.keydown);
@@ -71,11 +67,11 @@ class VizPackage {
 			.y((d) => { return this.yScale(d[Y_AXIS]); })
 			.curve(d3.curveMonotoneX);
 
-		this.generateArea = d3.area()
-			.x((d) => { return this.xScale(d[X_AXIS]); })
-			.y0(aesthetics.CHART_HEIGHT)
-			.y1((d) => { return this.yScale(d[Y_AXIS]); })
-			.curve(d3.curveMonotoneX);
+		// this.generateArea = d3.area()
+		// 	.x((d) => { return this.xScale(d[X_AXIS]); })
+		// 	.y0(aesthetics.CHART_HEIGHT)
+		// 	.y1((d) => { return this.yScale(d[Y_AXIS]); })
+		// 	.curve(d3.curveMonotoneX);
 
 		this.xAxis = this.container.append('g')
 			.attr('class', 'x axis')
@@ -128,8 +124,6 @@ class VizPackage {
   //      .attr('fill-opacity', 0.2)
   //      .attr('d', this.generateArea);
 
-    console.log(this.data);
-
     this.dataGroup = this.dataGroup.data(this.data);
     this.dataGroupEnter = this.dataGroup.enter()
     	.append('g')
@@ -166,26 +160,12 @@ class VizPackage {
 
 		this.dataGroup.exit().remove();
 		this.dataGroup = this.dataGroupEnter.merge(this.dataGroup);
-
 	}
 
 	containerMousemove = (self) => {
 		const x0 = this.xScale.invert(d3.mouse(self)[0]),
-					y2 = this.yScale.invert(d3.mouse(self)[1]);
-
-		const enlarged_points = this.data.map((dataset) => {
-			const line = dataset.data,
-						i = d3_utils.bisectAge(line, x0, 1);
-			if (i >= line.length) { return; }
-
-			const d0 = line[i - 1],
-						d1 = line[i],
-						d = x0 - d0[X_AXIS] > d1[X_AXIS] - x0 ? d1 : d0;
-
-			return d;			
-		});
-
-		const d = enlarged_points[0];
+					enlarged_points = utils.get_data_near_point(this.data, x0, X_AXIS),
+					d = enlarged_points[0];
 
 		this.focus.style('display', null);
 		this.focus.select('.hover-line.y-hover-line')
@@ -246,6 +226,10 @@ class VizPackage {
     switch(d3.event.keyCode) {
     	case 84: // T
     		this.cycleData();
+    		break;
+    	case 71: // G
+    		this.data = data_2;
+    		this.update();
     		break;
     	default:
     		return;
