@@ -11,7 +11,7 @@ const data_all = Object.keys(disney_data).map((key) => { return disney_data[key]
 // const data = test_data
 
 const X_AXIS = 'age';
-const Y_AXIS = 'salary';
+const Y_AXIS = 'count';
 
 class VizPackage {
 	constructor() {
@@ -29,8 +29,14 @@ class VizPackage {
 		this.data = data_all;
 		this.points = this.data;
 		this.first_line = this.points[0];
-		this.xDomain = [this.first_line.reduce((min, p) => p[X_AXIS] < min ? p[X_AXIS] : min, this.first_line[0][X_AXIS]), this.first_line.reduce((max, p) => p[X_AXIS] > max ? p[X_AXIS] : max, this.first_line[0][X_AXIS])];
-		this.yDomain = [this.first_line.reduce((min, p) => p[Y_AXIS] < min ? p[Y_AXIS] : min, this.first_line[0][Y_AXIS]), this.first_line.reduce((max, p) => p[Y_AXIS] > max ? p[Y_AXIS] : max, this.first_line[0][Y_AXIS])];
+		this.xDomain = [
+			this.first_line.reduce((min, p) => p[X_AXIS] < min ? p[X_AXIS] : min, this.first_line[0][X_AXIS]), 
+			this.first_line.reduce((max, p) => p[X_AXIS] > max ? p[X_AXIS] : max, this.first_line[0][X_AXIS])
+		];
+		this.yDomain = [
+			this.first_line.reduce((min, p) => p[Y_AXIS] < min ? p[Y_AXIS] : min, 
+			this.first_line[0][Y_AXIS]), this.first_line.reduce((max, p) => p[Y_AXIS] > max ? p[Y_AXIS] : max, this.first_line[0][Y_AXIS])
+		];
 
 		this.svg = d3.select(vizRef).append('svg')
 			.attr('class', 'svg-container')
@@ -186,7 +192,7 @@ class VizPackage {
 		});
 
 		const d = enlarged_points[0];
-			
+
 		this.focus.style('display', null);
 		this.focus.select('.hover-line.y-hover-line')
 			.attr('y2', this.yScale(d[Y_AXIS]))

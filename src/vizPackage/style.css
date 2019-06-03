@@ -20,7 +20,7 @@
 .axis text {
 	color: var(--border-light);
 	font-family: 'Roboto';
-	font-size: 10px;
+	font-size: 12px;
 }
 
 .point-group.faded .point {

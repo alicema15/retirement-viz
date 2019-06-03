@@ -22,7 +22,8 @@ function groupby_age(data) {
 		  .map((person, age) => ({
 		  	age: age,
 		    tenure: _.meanBy(person, 'tenure'),
-		    salary: _.meanBy(person, 'salary')
+		    salary: _.meanBy(person, 'salary'),
+		    count: person.length
 		  }))
 		  .value()
 		  .filter((d) => { return d.age != 0; });
