@@ -8,7 +8,7 @@ export const TURQUOISE = '#70cbce';
 export const POINT_RADIUS = 3;
 export const LINE_WIDTH = 2;
 
-const doe_colors = {
+export const doe_colors = {
   'BLUE' : 'hsl( 223, 100%, 70%)', //'#648fff',
   'GRAPE': '#3b1a40',
   'LILAC': '#b07ce8',
@@ -21,7 +21,7 @@ const doe_colors = {
   'LIGHT_GRAY': '#D3D3D3'
 }
 
-const color_scheme = [
+export const color_scheme = [
 	doe_colors.TURQUOISE,
 	doe_colors.MELON,
 	doe_colors.BLUE

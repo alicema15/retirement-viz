@@ -5,19 +5,19 @@ import * as d3_utils from './helpers/d3_utils';
 import './style.css';
 
 import disney_data from './data/process_disney';
-const data = disney_data.male;
-const data_all = Object.keys(disney_data).map((key) => { return disney_data[key]; });
+const data = disney_data;
+
 // import test_data from './data/test.json';
 // const data = test_data
 
 const X_AXIS = 'age';
-const Y_AXIS = 'count';
+const Y_AXIS = 'salary';
 
 class VizPackage {
 	constructor() {
 		this.width = window.innerWidth;
 		this.height = window.innerHeight;
-		this.points = [];
+		this.data = [];
 	}
 
 	initializeCanvas = (vizRef) => {
@@ -26,9 +26,9 @@ class VizPackage {
 		d3.select('body')
       .on('keydown', this.keydown);
 
-		this.data = data_all;
-		this.points = this.data;
-		this.first_line = this.points[0];
+		this.data_original = data;
+		this.data = this.data_original;
+		this.first_line = this.data[0].data;
 		this.xDomain = [
 			this.first_line.reduce((min, p) => p[X_AXIS] < min ? p[X_AXIS] : min, this.first_line[0][X_AXIS]), 
 			this.first_line.reduce((max, p) => p[X_AXIS] > max ? p[X_AXIS] : max, this.first_line[0][X_AXIS])
@@ -85,21 +85,14 @@ class VizPackage {
 			.attr('class', 'y axis')
 			.call(d3.axisLeft(this.yScale));
 
+		this.dataGroup = this.container.selectAll('.data-group');
+
 		this.area = this.container.append('path')
 			.attr('class', 'line-area')
 			.attr('pointer-events', 'none');
 
-		this.line = this.container.append('g')
-			.attr('class', 'line-container')
-			.attr('pointer-events', 'none')
-			.selectAll('.line');
-
-		this.pointGroup = this.container.append('g')
-			.attr('class', 'point-container')
-			// .attr('pointer-events', 'none')
-			.selectAll('.point-group');
-
-		this.point = this.pointGroup.selectAll('.point');
+		this.line = this.dataGroup.selectAll('.line');
+		this.point = this.dataGroup.append('g').selectAll('.point');
 
 		this.focus = this.container.append('g')
 			.attr('class', 'focus')
@@ -128,41 +121,37 @@ class VizPackage {
 		const self = this;
 
 		// this.area = this.container.select('.line-area')
-  //      .data([this.points])
+  //      .data([this.data])
   //      .attr('class', 'area')
   //      .attr('fill', aesthetics.TURQUOISE)
   //      .attr('fill-opacity', 0.2)
   //      .attr('d', this.generateArea);
 
-     console.log(data_all);
-		this.line = this.line.data(this.points);
+    console.log(this.data);
 
-		this.lineEnter = this.line
-			.enter()
+    this.dataGroup = this.dataGroup.data(this.data);
+    this.dataGroupEnter = this.dataGroup.enter()
+    	.append('g')
+			.attr('class', 'data-group')
+			.attr('fill', function(d) { return d.color; });
+
+		this.line = this.dataGroupEnter.selectAll('.line');
+
+		this.line = this.dataGroupEnter
 			.append('path')
 			.attr('class', 'line')
 			.attr('fill', 'none')
-			.attr('stroke', function(d, i) { return aesthetics.get_color(i); })
+			.attr('pointer-events', 'none')
+			.attr('stroke', function(d) { return d.color; })
 			.attr('stroke-width', aesthetics.LINE_WIDTH)
-			.attr('d', this.generateLine);
+			.attr('d', (d) => { return this.generateLine(d.data); });
 
-		this.line.exit().remove();
-		this.line = this.lineEnter.merge(this.line);
+		this.pointGroup = this.dataGroupEnter.append('g').attr('class', 'point-group');
 
-		this.pointGroup = this.pointGroup.data(this.points);
+		this.point = this.pointGroup.selectAll('.point').data((d) => { return d.data; });
 
-		this.pointGroupEnter = this.pointGroup.enter()
-			.append('g')
-			.attr('class', 'point-group ')
-			.attr('fill', function(d, i) { return aesthetics.get_color(i); });
-
-		this.pointGroup.exit().remove();
-		this.pointGroup = this.pointGroupEnter.merge(this.pointGroup);
-
-		this.point = this.pointGroup.selectAll('.point')
-			.data(function(d) { return d; });
-
-		this.pointEnter = this.point.enter()
+		this.pointEnter = this.point
+			.enter()
 			.append('circle')
 			.attr('class', 'point')
 			.attr('r', aesthetics.POINT_RADIUS)
@@ -171,17 +160,21 @@ class VizPackage {
 			.on('mouseenter', function(d) { self.pointMouseenter(d, this); })
 			.on('mouseleave', function(d) { self.pointMouseleave(d, this); });
 
-		this.point.exit().remove();
+		this.point = this.point.exit().remove();
 		this.point = this.pointEnter.merge(this.point);
+
+		this.dataGroup.exit().remove();
+		this.dataGroup = this.dataGroupEnter.merge(this.dataGroup);
+
 	}
 
 	svgMousemove = (self) => {
-		const first_line = this.points[0],
-					x0 = this.xScale.invert(d3.mouse(self)[0]),
+		const x0 = this.xScale.invert(d3.mouse(self)[0]),
 					y2 = this.yScale.invert(d3.mouse(self)[1]);
 
-		const enlarged_points = this.points.map((line) => {
-			const i = d3_utils.bisectAge(line, x0, 1);
+		const enlarged_points = this.data.map((dataset) => {
+			const line = dataset.data,
+						i = d3_utils.bisectAge(line, x0, 1);
 			if (i >= line.length) { return; }
 
 			const d0 = line[i - 1],
@@ -208,15 +201,10 @@ class VizPackage {
 			.attr('r', 7);
 		this.point.filter((n) => { return !enlarged_points.includes(n); })
 			.attr('r', aesthetics.POINT_RADIUS);
-
-		// this.fadeNodes(d);
-		// this.fadeLinks(d);
 	}
 
 	pointMouseenter = (d, self) => {
-		const point = d3.select(self);
-		this.fadeNodes(d);
-		this.fadeLinks(d);
+		this.fadeData(d);
 	}
 
 	pointMouseleave = (d, self) => {
@@ -224,12 +212,9 @@ class VizPackage {
 		this.line.classed('faded', false);
 	}
 
-	fadeNodes = (d) => {
-		this.pointGroup.classed('faded', (n) => { return !n.includes(d); });
-	}
-
-	fadeLinks = (d) => {
-  	this.line.classed('faded', (l) => { return !l.includes(d); });
+	fadeData = (d) => {
+		this.pointGroup.classed('faded', (n) => { return !n.data.includes(d); });
+  	this.line.classed('faded', (l) => { return !l.data.includes(d); });
 	}
 
 	removeFade = () => {
@@ -238,14 +223,14 @@ class VizPackage {
 	}
 
 	cycleData = () => {
-		const max_lines = this.data.length,
+		const max_lines = this.data_original.length,
 					num_lines = Math.floor(Math.random() * max_lines) + 1,
-					which_lines = this.data.slice(0, num_lines).map(function () { 
+					which_lines = this.data_original.slice(0, num_lines).map(function () { 
 				        return this.splice(Math.floor(Math.random() * this.length), 1)[0];
-				    }, this.data.slice());
+				    }, this.data_original.slice());
 		
 		console.log(which_lines)
-		this.points = which_lines;
+		this.data = which_lines;
 		this.update();
 	}
 

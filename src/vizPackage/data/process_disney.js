@@ -1,4 +1,6 @@
 import * as _ from 'lodash';
+
+import * as aesthetics from '../constants/aesthetics';
 import disney_data from './disney_payload.json';
 
 disney_data.people_attributes.forEach((person) => { 
@@ -41,4 +43,8 @@ const disney_processed_female = groupby_age(disney_female);
 const disney_processed_male = groupby_age(disney_male);
 const disney_processed_all = groupby_age(disney_data.people_attributes);
 
-export default { 'male': disney_processed_male, 'female': disney_processed_female, 'all': disney_processed_all};
+export default [
+	{ 'gender': 'male', 'data': disney_processed_male, 'color': aesthetics.doe_colors.TURQUOISE},
+	{ 'gender': 'female', 'data': disney_processed_female, 'color': aesthetics.doe_colors.MELON},
+	{ 'gender': 'all', 'data': disney_processed_all, 'color': aesthetics.doe_colors.BLUE}
+];
