@@ -172,14 +172,21 @@ class VizPackage {
 	svgMousemove = (self) => {
 		const first_line = this.points[0],
 					x0 = this.xScale.invert(d3.mouse(self)[0]),
-					y2 = this.yScale.invert(d3.mouse(self)[1]),
-					i = d3_utils.bisectAge(first_line, x0, 1);
+					y2 = this.yScale.invert(d3.mouse(self)[1]);
 
-		if (i >= first_line.length) { return; }
-		const d0 = first_line[i - 1],
-					d1 = first_line[i],
-					d = x0 - d0.age > d1.age - x0 ? d1 : d0;
-					
+		const enlarged_points = this.points.map((line) => {
+			const i = d3_utils.bisectAge(line, x0, 1);
+			if (i >= line.length) { return; }
+
+			const d0 = line[i - 1],
+						d1 = line[i],
+						d = x0 - d0[X_AXIS] > d1[X_AXIS] - x0 ? d1 : d0;
+
+			return d;			
+		});
+
+		const d = enlarged_points[0];
+			
 		this.focus.style('display', null);
 		this.focus.select('.hover-line.y-hover-line')
 			.attr('y2', this.yScale(d[Y_AXIS]))
@@ -191,9 +198,9 @@ class VizPackage {
 			.attr('y2', this.yScale(d[Y_AXIS]))
 			.attr('x2', this.xScale(d[X_AXIS]));
 
-		this.point.filter((n) => { return n === d; })
-			.attr('r', 7)
-		this.point.filter((n) => { return n !== d; })
+		this.point.filter((n) => { return enlarged_points.includes(n); })
+			.attr('r', 7);
+		this.point.filter((n) => { return !enlarged_points.includes(n); })
 			.attr('r', aesthetics.POINT_RADIUS);
 
 		// this.fadeNodes(d);
