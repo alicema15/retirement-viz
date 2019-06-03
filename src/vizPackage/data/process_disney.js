@@ -6,14 +6,38 @@ disney_data.people_attributes.forEach((person) => {
 	else { person.salary = parseInt(person.salary); }
 });
 
-const disney_processed = _(disney_data.people_attributes)
-  .groupBy('age')
-  .map((person, age) => ({
-  	age: age,
-    tenure: _.meanBy(person, 'tenure'),
-    salary: _.meanBy(person, 'salary')
-  }))
-  .value()
-  .filter((d) => { return d.age != 0; });
+// const disney_processed = _(disney_data.people_attributes)
+//   .groupBy('age')
+//   .map((person, age) => ({
+//   	age: age,
+//     tenure: _.meanBy(person, 'tenure'),
+//     salary: _.meanBy(person, 'salary')
+//   }))
+//   .value()
+//   .filter((d) => { return d.age != 0; });
 
-export default disney_processed;
+function groupby_age(data) {
+	return _(data)
+		  .groupBy('age')
+		  .map((person, age) => ({
+		  	age: age,
+		    tenure: _.meanBy(person, 'tenure'),
+		    salary: _.meanBy(person, 'salary')
+		  }))
+		  .value()
+		  .filter((d) => { return d.age != 0; });
+}
+
+const disney_female = disney_data.people_attributes.filter((person) => {
+	return person.gender === 'female';
+});
+
+const disney_male = disney_data.people_attributes.filter((person) => {
+	return person.gender === 'male';
+});
+
+const disney_processed_female = groupby_age(disney_female);
+const disney_processed_male = groupby_age(disney_male);
+const disney_processed_all = groupby_age(disney_data.people_attributes);
+
+export default { 'male': disney_processed_male, 'female': disney_processed_female, 'all': disney_processed_all};

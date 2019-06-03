@@ -18,14 +18,18 @@
 }
 
 .axis text {
-	color: var(--border);
+	color: var(--border-light);
 	font-family: 'Roboto';
 	font-size: 10px;
 }
 
+.point-group.faded .point {
+	opacity: 0.2;
+}
+
 .point {
-	fill: var(--primary-fill);
-	stroke: #fff;
+/*	fill: var(--primary-fill);
+*/	stroke: #fff;
 	stroke-width: 0.5;
 }
 
@@ -34,7 +38,7 @@
 }
 
 .line.faded {
-	opacity: 0.3;
+	opacity: 0.2;
 }
 
 .hover-line {
