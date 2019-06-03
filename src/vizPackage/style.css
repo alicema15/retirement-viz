@@ -1,11 +1,8 @@
 @import url('https://fonts.googleapis.com/css?family=Roboto:300,400,500');
 
 :root {
-  --fixed: #D3D3D3; 
-  --selected: #2d7ff9;
   --border: #525A66;
   --border-light: #989FA9;
-  --primary-fill: #70cbce;
 }
 
 .axis path {
@@ -28,13 +25,8 @@
 }
 
 .point {
-/*	fill: var(--primary-fill);
-*/	stroke: #fff;
+	stroke: #fff;
 	stroke-width: 0.5;
-}
-
-.point.faded {
-	opacity: 0.3;
 }
 
 .line.faded {

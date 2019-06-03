@@ -19,14 +19,4 @@ export const doe_colors = {
   'DARK_GRAY': '#403F40',
   'MEDIUM_GRAY': '#777677',
   'LIGHT_GRAY': '#D3D3D3'
-}
-
-export const color_scheme = [
-	doe_colors.TURQUOISE,
-	doe_colors.MELON,
-	doe_colors.BLUE
-]
-
-export const get_color = (i) => {
-	return color_scheme[i];
-}
+};
