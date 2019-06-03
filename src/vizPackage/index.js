@@ -5,7 +5,7 @@ import * as d3_utils from './helpers/d3_utils';
 import './style.css';
 
 import disney_data from './data/process_disney';
-const data = disney_data.all;
+const data = disney_data.male;
 const data_all = Object.keys(disney_data).map((key) => { return disney_data[key]; });
 // import test_data from './data/test.json';
 // const data = test_data
@@ -23,9 +23,14 @@ class VizPackage {
 	initializeCanvas = (vizRef) => {
 		const self = this; 
 
-		this.points = data_all;
-		this.xDomain = [data.reduce((min, p) => p[X_AXIS] < min ? p[X_AXIS] : min, data[0][X_AXIS]), data.reduce((max, p) => p[X_AXIS] > max ? p[X_AXIS] : max, data[0][X_AXIS])];
-		this.yDomain = [data.reduce((min, p) => p[Y_AXIS] < min ? p[Y_AXIS] : min, data[0][Y_AXIS]), data.reduce((max, p) => p[Y_AXIS] > max ? p[Y_AXIS] : max, data[0][Y_AXIS])];
+		d3.select('body')
+      .on('keydown', this.keydown);
+
+		this.data = data_all;
+		this.points = this.data;
+		this.first_line = this.points[0];
+		this.xDomain = [this.first_line.reduce((min, p) => p[X_AXIS] < min ? p[X_AXIS] : min, this.first_line[0][X_AXIS]), this.first_line.reduce((max, p) => p[X_AXIS] > max ? p[X_AXIS] : max, this.first_line[0][X_AXIS])];
+		this.yDomain = [this.first_line.reduce((min, p) => p[Y_AXIS] < min ? p[Y_AXIS] : min, this.first_line[0][Y_AXIS]), this.first_line.reduce((max, p) => p[Y_AXIS] > max ? p[Y_AXIS] : max, this.first_line[0][Y_AXIS])];
 
 		this.svg = d3.select(vizRef).append('svg')
 			.attr('class', 'svg-container')
@@ -124,7 +129,9 @@ class VizPackage {
   //      .attr('d', this.generateArea);
 
      console.log(data_all);
-		this.line = this.line.data(data_all)
+		this.line = this.line.data(this.points);
+
+		this.lineEnter = this.line
 			.enter()
 			.append('path')
 			.attr('class', 'line')
@@ -132,6 +139,9 @@ class VizPackage {
 			.attr('stroke', function(d, i) { return aesthetics.get_color(i); })
 			.attr('stroke-width', aesthetics.LINE_WIDTH)
 			.attr('d', this.generateLine);
+
+		this.line.exit().remove();
+		this.line = this.lineEnter.merge(this.line);
 
 		this.pointGroup = this.pointGroup.data(this.points);
 
@@ -212,6 +222,30 @@ class VizPackage {
 	removeFade = () => {
 		this.pointGroup.classed('faded', false);
 		this.line.classed('faded', false);
+	}
+
+	cycleData = () => {
+		const max_lines = this.data.length,
+					num_lines = Math.floor(Math.random() * max_lines) + 1,
+					which_lines = this.data.slice(0, num_lines).map(function () { 
+				        return this.splice(Math.floor(Math.random() * this.length), 1)[0];
+				    }, this.data.slice());
+		
+		console.log(which_lines)
+		this.points = which_lines;
+		this.update();
+	}
+
+	keydown = () => {
+    if (d3.event.target.tagName === 'INPUT') return;
+    console.log('keycode: ', d3.event.keyCode);
+    switch(d3.event.keyCode) {
+    	case 84: // T
+    		this.cycleData();
+    		break;
+    	default:
+    		return;
+    }
 	}
 
 }
