@@ -6,6 +6,7 @@ export const CHART_WIDTH = 700;
 
 export const TURQUOISE = '#70cbce';
 export const POINT_RADIUS = 3;
+export const POINT_RADIUS_ENLARGED = 7;
 export const LINE_WIDTH = 2;
 
 export const doe_colors = {

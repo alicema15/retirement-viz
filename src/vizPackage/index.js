@@ -23,12 +23,10 @@ class VizPackage {
 	initializeCanvas = (vizRef) => {
 		const self = this; 
 
-		d3.select('body')
-      .on('keydown', this.keydown);
-
 		this.data_original = data;
 		this.data = this.data_original;
-		this.first_line = this.data[0].data;
+		this.first_line = this.data.map((d) => { return d.data }).flat();
+		
 		this.xDomain = [
 			this.first_line.reduce((min, p) => p[X_AXIS] < min ? p[X_AXIS] : min, this.first_line[0][X_AXIS]), 
 			this.first_line.reduce((max, p) => p[X_AXIS] > max ? p[X_AXIS] : max, this.first_line[0][X_AXIS])
@@ -37,6 +35,9 @@ class VizPackage {
 			this.first_line.reduce((min, p) => p[Y_AXIS] < min ? p[Y_AXIS] : min, 
 			this.first_line[0][Y_AXIS]), this.first_line.reduce((max, p) => p[Y_AXIS] > max ? p[Y_AXIS] : max, this.first_line[0][Y_AXIS])
 		];
+
+		d3.select('body')
+      .on('keydown', this.keydown);
 
 		this.svg = d3.select(vizRef).append('svg')
 			.attr('class', 'svg-container')
@@ -54,8 +55,8 @@ class VizPackage {
 			.attr('height', aesthetics.CHART_HEIGHT)
 			.attr('fill-opacity', 0)
 			.on('mouseenter', (d) => { this.focus.style('display', null); })
-			.on('mousemove', function(d) { self.svgMousemove(this); })
-			.on('mouseleave', (d) => { this.focus.style('display', 'none'); });
+			.on('mousemove', function(d) { self.containerMousemove(this); })
+			.on('mouseexit', (d) => { self.containerMouseexit(this); });
 
 		this.xScale = d3.scaleLinear()
 			.domain(this.xDomain)
@@ -87,9 +88,9 @@ class VizPackage {
 
 		this.dataGroup = this.container.selectAll('.data-group');
 
-		this.area = this.container.append('path')
-			.attr('class', 'line-area')
-			.attr('pointer-events', 'none');
+		// this.area = this.container.append('path')
+		// 	.attr('class', 'line-area')
+		// 	.attr('pointer-events', 'none');
 
 		this.line = this.dataGroup.selectAll('.line');
 		this.point = this.dataGroup.append('g').selectAll('.point');
@@ -107,12 +108,12 @@ class VizPackage {
 			.attr('class', 'hover-line x-hover-line')
 			.attr('x1', 0);
 
-		this.minimapContainer = this.svg.append('g')
-			.attr('class', 'mini-map-container')
-			.attr('transform', 'translate(' 
-				+ (aesthetics.MARGIN_LEFT) + ',' 
-				+ (2 * aesthetics.MARGIN_TOP + aesthetics.CHART_HEIGHT) + ')'
-				);
+		// this.minimapContainer = this.svg.append('g')
+		// 	.attr('class', 'mini-map-container')
+		// 	.attr('transform', 'translate(' 
+		// 		+ (aesthetics.MARGIN_LEFT) + ',' 
+		// 		+ (2 * aesthetics.MARGIN_TOP + aesthetics.CHART_HEIGHT) + ')'
+		// 		);
 
 		this.update();
 	}
@@ -168,7 +169,7 @@ class VizPackage {
 
 	}
 
-	svgMousemove = (self) => {
+	containerMousemove = (self) => {
 		const x0 = this.xScale.invert(d3.mouse(self)[0]),
 					y2 = this.yScale.invert(d3.mouse(self)[1]);
 
@@ -198,9 +199,15 @@ class VizPackage {
 			.attr('x2', this.xScale(d[X_AXIS]));
 
 		this.point.filter((n) => { return enlarged_points.includes(n); })
-			.attr('r', 7);
+			.attr('r', aesthetics.POINT_RADIUS_ENLARGED);
+
 		this.point.filter((n) => { return !enlarged_points.includes(n); })
 			.attr('r', aesthetics.POINT_RADIUS);
+	}
+
+	containerMouseexit = (self) => {
+		this.focus.style('display', 'none');
+		this.point.attr('r', aesthetics.POINT_RADIUS);
 	}
 
 	pointMouseenter = (d, self) => {
@@ -208,8 +215,7 @@ class VizPackage {
 	}
 
 	pointMouseleave = (d, self) => {
-		this.pointGroup.classed('faded', false);
-		this.line.classed('faded', false);
+		this.removeFade();
 	}
 
 	fadeData = (d) => {
